@@ -66,6 +66,7 @@ class Task(daq.Task):
             if self.data_gen is not None:
                 self._data = self.data_gen.next()  # get data from data generator
             if self.cha_type[0] is "input":
+                assert self._data.shape[1] == self.num_channels
                 self.ReadAnalogF64(DAQmx_Val_Auto, 1.0, DAQmx_Val_GroupByScanNumber,
                                    self._data, self.num_samples_per_chan * self.num_channels, daq.byref(self.read), None)
             elif self.cha_type[0] is "output":
@@ -95,16 +96,7 @@ if __name__ == "__main__":
 
     t_ai.data_rec = [plot(), save("../test/test.h5", channels=num_input_chan)]  # sould be iterable...
 
-    # init stim - should be a list of nparrays,
-    # assert that:
-    #   size is multiple of min_event_samples
-    #   right number of channels
-    stim = list()
-    for ii in range(2):
-        t = np.arange(0, 1, 1.0 / max(100.0 ** ii, 10))
-        tmp = np.tile(0.2 * np.sin(5000 * t).astype(np.float64), (num_output_chan, 1)).T
-        stim.append(np.ascontiguousarray(tmp))  # `ascont...` necessary since `.T` messes up internal array format
-    stim_order = False
+    stim, stim_order_random = load_stim(num_output_chan)
     t_ao.data_gen = data(stim)  # generator function that yields data upon request
 
     # Connect AO start to AI start
@@ -116,15 +108,11 @@ if __name__ == "__main__":
 
     # run acquisition
     print("Presenting/Acquiring 10 * 10000 samples in continuous mode.")
-    time.sleep(10.1)
-
-    # for _ in range(10):
-    #     data = t_ai.get_data(timeout=2)
-    #     ax.plot(data[:1000])
-    #     plt.pause(0.0001)
+    time.sleep(5)
     t_ao.StopTask()
     t_ai.StopTask()
     # properly close callbacks (e.g. flush data to disk and close file)
+    time.sleep(.1)  # give all callbacks time to finish up
     t_ao.stop()
     t_ai.stop()
     t_ao.ClearTask()

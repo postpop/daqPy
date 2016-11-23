@@ -40,19 +40,10 @@ if __name__ == "__main__":
     num_input_chan = 4
     num_output_chan = 2
 
-    # register all callback
-    t_ai.data_rec = [plot(), save("../test/test.h5", channels=num_input_chan)]  # sould be iterable...
+    # register all callbacks
+    t_ai.data_rec = [plot(), save("../test/test.h5", channels=num_input_chan), log("../test/log.txt")]  # sould be iterable...
 
-    # init stim - should be a list of nparrays,
-    # assert that:
-    #   size is multiple of min_event_samples
-    #   right number of channels
-    stim = list()
-    for ii in range(2):
-        t = np.arange(0, 1, 1.0 / max(100.0 ** ii, 10))
-        tmp = np.tile(0.2 * np.sin(5000 * t).astype(np.float64), (num_output_chan, 1)).T
-        stim.append(np.ascontiguousarray(tmp))  # `ascont...` necessary since `.T` messes up internal array format
-    stim_order = False
+    stim, stim_order_random = load_stim(num_output_chan)
     t_ao.data_gen = data(stim)  # generator function that yields data upon request
 
     task_man = TaskManager(input_task=t_ai, output_task=t_ao)
