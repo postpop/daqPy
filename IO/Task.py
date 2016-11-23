@@ -12,6 +12,7 @@ from callbacks import *
 
 
 class Task(daq.Task):
+
     def __init__(self, dev_name="Dev1", cha_name=["ai0"], data_len=1000, limits=10.0, rate=10000.0):
         # check inputs
         daq.Task.__init__(self)

@@ -1,8 +1,8 @@
 import h5py
 import numpy as np
-import matplotlib
 from tools import *
-matplotlib.use('tkagg')
+import matplotlib as mpl
+mpl.use('tkagg')
 import matplotlib.pyplot as plt
 
 
