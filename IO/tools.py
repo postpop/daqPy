@@ -6,32 +6,36 @@ import h5py
 
 
 def load_ctrl(path):
+    """read control file `path` from txt"""
     return pd.read_table(path,
                          sep='\t',  # tab-delimited
                          header=0)  # coumns names from first row (header)
 
 
 def save_prot(path, prot):
+    """save protocol `prot` to txt file `path`"""
     prot.to_csv(path,
                 sep='\t',     # tab-delimited
                 header=0,     # column names as header
                 index=False)  # omit row numbers
 
 
-def load_stim_from_mat(path):
+def load_stim_from_mat(path, var_name="stim"):
+    """load stimulus vector from matlab file (v7.3+/-)"""
     stim = None
     try:
         f = scio.loadmat(path)
-        stim = f["stim"]
+        stim = f[var_name]
     except:
         f = h5py.File(path)
         for name in f:
             print(name)
-        stim = f["stim"][0]
+        stim = f[var_name][0]
     return stim
 
 
 def load_stim(num_output_chan=1):
+    """dummy function - returns list of 3 sinusoidals that differ in length"""
     stim = list()
     for ii in range(2):
         t = np.arange(0, 1, 1.0 / max(100.0 ** ii, 10))
@@ -42,6 +46,7 @@ def load_stim(num_output_chan=1):
 
 
 def load_stim_from_ctrl(ctrl, stim_dir=''):
+    """load stims in ctrl file into list"""
     stim_names = ctrl['stimFileName'].unique()# find unique stim names
     stim = [load_stim_from_mat(os.path.join(stim_dir, stim_name + '.mat')) for stim_name in stim_names]
     return stim, stim_names

@@ -70,19 +70,24 @@ def save(file_name, channels=1):
             f.flush()  # flush data to disk so we don't lose it all during a crash
     except GeneratorExit:
         print("   closing file \"{0}\".".format(file_name))
-        f.flush()  # final flush before we close
+        f.flush()  # a final flush before we close
         f.close()
 
 
 def log(file_name):
-    f = open(file_name, 'r')      # open file
-    try:
-        while True:
-            message = (yield)  # gets sent variables
-            f.write(message)  # write log to file
-    except GeneratorExit:
-        print("   closing file \"{0}\".".format(file_name))
-        f.close()  # close file
+    with open(file_name, 'a') as f:      # open file
+        try:
+            with_header = False
+            while True:
+                message = (yield)            # gets sent variables
+                message.to_csv(f,            # file to write to
+                               sep='\t',     # tab-delimited
+                               header=with_header,  # do not write header when appending
+                               index=False)  # omit row numbers
+                with_header = True  # after the first roun, do not write header anymore
+        except GeneratorExit:
+            print("   closing file \"{0}\".".format(file_name))
+            f.close()  # close file - not necessary since we use `with` context?
 
 
 def data(stim=None, stim_order=None):
@@ -95,4 +100,4 @@ def data(stim=None, stim_order=None):
             print("{0}: generating {1}".format(count, stim[(count - 1) % len(stim)].shape))
             yield stim[(count - 1) % len(stim)]
     except GeneratorExit:
-        print("   cleaning up dategen.")
+        print("   cleaning up datagen.")
